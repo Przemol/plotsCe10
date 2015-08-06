@@ -1,0 +1,16 @@
+base
+BiocGenerics
+magrittr
+seqplots
+S4Vectors
+IRanges
+GenomeInfoDb
+GenomicRanges
+XVector
+Biostrings
+rtracklayer
+BSgenome
+BSgenome.Celegans.UCSC.ce10
+Biobase
+AnnotationDbi
+GenomicFeatures
