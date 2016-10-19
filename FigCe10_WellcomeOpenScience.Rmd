@@ -54,6 +54,11 @@ tracks <- structure(c(
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K4me3/REP032/H3K4me3_N2_L3_NORM_zscore_1bp_MH038^MH041_F7707165^F1907178.bw", 
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/HTZ1/REP055/HTZ1_N2_L3_NORM_zscore_1bp_IL010^IL009_Fba07475^F8107494.bw"
 ), .Names = c("REP054", "REP032", "REP055"))
+dir.create('tracks_rep')
+sapply(tracks, function(x) download.file(x, file.path('tracks_rep', basename(x))) )
+
+
+tracks <- dir('tracks_rep', full.names = TRUE)
 features <- dir('features', pattern = 'bed', full.names = TRUE)
 
 top_limits <- list(c(-0.3, 2.5), c(0, 6.5), c(-0.3, 3.5), c(6, 12))
@@ -116,7 +121,7 @@ plotTopBar <- function(M, titles=LETTERS, limits=NULL) {
         par(mgp = c(0, 1, 0))
     }
     plt <- function(p, ylim = NULL, ...) {
-        for (i in 1:p$npaires()) {
+        for (i in 1:length(p$data)) {
             plot(
                 p[i], ylim = ylim, keepratio = TRUE, legend = FALSE, ln.h = 0,
                 cex.axis = f, cex.lab = f, ln.v = TRUE, xlab = '',
