@@ -47,15 +47,14 @@ Following tracks (each containing averaged signal for 2 replicates) are used:
 ```{r aquire1, message=FALSE}
 require(seqplots)
 require(magrittr)
-devtools::load_all("/Users/przemol/code/seqplotsR")
 
 tracks <- structure(c(
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K36me3/REP054/H3K36me3_N2_L3_NORM_zscore_1bp_PK006^PK007_Fdf07466^Fcf07468.bw", 
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K4me3/REP032/H3K4me3_N2_L3_NORM_zscore_1bp_MH038^MH041_F7707165^F1907178.bw", 
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/HTZ1/REP055/HTZ1_N2_L3_NORM_zscore_1bp_IL010^IL009_Fba07475^F8107494.bw"
 ), .Names = c("REP054", "REP032", "REP055"))
-dir.create('tracks_rep')
-sapply(tracks, function(x) download.file(x, file.path('tracks_rep', basename(x))) )
+#dir.create('tracks_rep')
+#sapply(tracks, function(x) download.file(x, file.path('tracks_rep', basename(x)), quiet = TRUE) )
 
 
 tracks <- dir('tracks_rep', full.names = TRUE)
