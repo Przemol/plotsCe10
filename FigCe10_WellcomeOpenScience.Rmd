@@ -39,34 +39,39 @@ knitr::opts_chunk$set(cache=TRUE)
 
 Following tracks (each containing averaged signal for 2 replicates) are used:
 
-- `HTZ1^JA00001__IL1^F^N2^L3_IL010_and_IL2^F^N2^L3_IL009__NORM^linear^1bp_averaged.bw`
-- `H3K4me3^ab8580__rc03^F^Cfp1-GFP^L3_RC007_and_rc04^F^Cfp1-GFP^L3_RC008__NORM^linear^1bp_averaged.bw`
-- `H3K36me3^HK00001__PK07^F^N2^L3_PK007_and_PK06^F^N2^L3_PK006__NORM^linear^1bp_averaged.bw`
+```{r list_files}
+dir('tracks_rep', full.names = TRUE)
+```
 
 ## Loading data and libraries
+
+```{r, var_setup}
+res_dpi <- 300
+top_limits <- list(c(-0.3, 2.5), c(0, 8), c(-0.3, 3.5), c(6, 12))
+colvec <- list(
+   rev(RColorBrewer::brewer.pal(11, name = 'RdYlBu')),
+   NA, 
+   rev(RColorBrewer::brewer.pal(11, name = 'BrBG')), 
+   c('white', '#66ccff', '#000066')
+)
+
+```
+
+
 ```{r aquire1, message=FALSE}
 require(seqplots)
 require(magrittr)
 
 tracks <- structure(c(
-  "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K36me3/REP054/H3K36me3_N2_L3_NORM_zscore_1bp_PK006^PK007_Fdf07466^Fcf07468.bw", 
+  "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K4me3/REP056/H3K4me3_N2_L3_NORM_zscore_1bp_IL002%5EIL001_F9106407%5EFbf06395.bw", 
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/H3K4me3/REP032/H3K4me3_N2_L3_NORM_zscore_1bp_MH038^MH041_F7707165^F1907178.bw", 
   "http://jadb.gurdon.private.cam.ac.uk/db4/files/REPLICATES/HTZ1/REP055/HTZ1_N2_L3_NORM_zscore_1bp_IL010^IL009_Fba07475^F8107494.bw"
-), .Names = c("REP054", "REP032", "REP055"))
+), .Names = c("REP056", "REP032", "REP055"))
 #dir.create('tracks_rep')
 #sapply(tracks, function(x) download.file(x, file.path('tracks_rep', basename(x)), quiet = TRUE) )
 
-
 tracks <- dir('tracks_rep', full.names = TRUE)
 features <- dir('features', pattern = 'bed', full.names = TRUE)
-
-top_limits <- list(c(-0.3, 2.5), c(0, 6.5), c(-0.3, 3.5), c(6, 12))
-colvec <- list(
-    NA, 
-    c('blue', 'white', 'red'), 
-    c('blue', 'white', 'red'), 
-    c('white', '#66ccff', '#000066')
-)
 
 tracks
 features
@@ -83,7 +88,7 @@ m1 <- getPlotSetArray(
 
 m2 <- getPlotSetArray(
     tracks = grep('H3K4me3', tracks, value = TRUE, ignore.case = TRUE),
-    features = grep('top|third|bot', features, value = TRUE),
+    features = features,
     refgenome = 'ce10',
     bin = 10L, xmin = 1000L, xmax = 1000L
 )
@@ -91,7 +96,7 @@ m2 <- getPlotSetArray(
 
 # Bottom figures c and d
 ms <- MotifSetup()
-ms$addBigWig(tracks[2])$addBigWig(tracks[3])$addBigWig(tracks[1])
+ms$addBigWig(tracks[1])$addBigWig(tracks[2])$addBigWig(tracks[3])
 ms$addMotif('CG', revcomp = FALSE, name = "CpG")
 
 M <- getPlotSetArray(
@@ -154,7 +159,6 @@ plotTopBar <- function(M, titles=LETTERS, limits=NULL) {
 # Figures
 
 ## [Plot A](fa2.pdf)
-
 ```{r lineplot1, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='svg', fig.align='center', fig.height=8.27, fig.width=11.7, out.height=450, out.width="auto"}
 plotAverage(
     m1, labels = colnames(m1$as.array())  %>% strsplit('_')  %>% sapply('[[', 1), 
@@ -162,48 +166,52 @@ plotAverage(
     cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22,
     main = "Top expression quintile", xlab = "TSS", ylab = "Z-scored ChIP signal"
 )
-dev.print(pdf, file='fa2.pdf'); dev.print(png, file='fa2.png', height=8.27, width=11.7, res=72, units = "in");
+dev.print(pdf, file='fa2.pdf'); dev.print(png, file='fa2.png', height=8.27, width=11.7, res=res_dpi, units = "in");
+
 ```
 
 ## [Plot B](fb2.pdf)
 
 ```{r lineplot2, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='svg', fig.align='center', fig.height=8.27, fig.width=11.7, out.height=450, out.width="auto"}
 plotAverage(
-    m2[3:1], labels = c("TSS top 20%", "TSS middle 20%", "TSS bottom 20%"), 
+    m2[c(5,3,4,2,1)], labels = c("TSS top 20%", "TSS 2nd 20%", "TSS middle 20%", "TSS fourth 20%", "TSS bottom 20%"), 
     legend_pos = 'topleft', legend_ext = TRUE, legend_ext_pos = 'topright',
-    cex.legend = 17, cex.main = 36, cex.lab = 28, cex.axis = 22,
+    cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22,
     main = "H3K4me3 ChIP-seq signal", xlab = "TSS", ylab = "Z-scored ChIP signal"
 )
-dev.print(pdf, file='fb2.pdf'); dev.print(png, file='fb2.png', height=8.27, width=11.7, res=72, units = "in");
+dev.print(pdf, file='fb2.pdf'); dev.print(png, file='fb2.png', height=8.27, width=11.7, res=res_dpi, units = "in");
+
 ```
 
-## [Plot C](fc.pdf)
+## [Plot c](fc.pdf)
 ```{r topbar1, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='svg', fig.align='center', fig.height=2*4, fig.width=6*4, out.height='300', out.width="auto"}
 plotTopBar(
     M, M$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
     limits = top_limits
 )
-dev.print(pdf, file='fc.pdf'); dev.print(png, file='fc.png', height=2*4, width=6*4, res=72, units = "in");
+dev.print(pdf, file='fc.pdf'); dev.print(png, file='fc.png', height=2*4, width=6*4, res=res_dpi, units = "in");
+
 ```
 
-## [Plot D](fd.pdf)
-```{r heatmap1, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
+## [Plot e](fd.pdf)
+```{r heatmap1, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='png', fig.align='center',  fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
+set.seed(1)
 cls <- plotHeatmap(
     M, labels = M$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
     raster = TRUE, include = c(T,F,F,F), sortrows = 'decreasing', clusters = 3, 
     cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 16)
+    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 16),
+    clspace = c('#011279', '#ffffff', '#ab1500')
 )
-
-dev.print(pdf, file='fd.pdf'); dev.print(png, file='fd.png', height=8.27, width=11.7, res=72, units = "in");
+dev.print(pdf, file='fd.pdf'); dev.print(png, file='fd.png', height=8.27, width=11.7, res=res_dpi, units = "in");
 ```
 
-## [Plot E](fe.pdf)
+## [Plot d](fe.pdf)
 ```{r topbar2, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='svg', fig.align='center', fig.height=2*4, fig.width=6*4, out.height='300', out.width="auto"}
 export.bed(import.bed(features[5])[cls$ClusterID==1], 'flt.bed')
 MF <- getPlotSetArray(
     tracks = ms,
-    features = 'flt.bed',
+    features = makeGRangesFromDataFrame(cls[cls$ClusterID==2,]),
     refgenome = 'ce10',
     bin = 10L, xmin = 1000L, xmax = 1500L
 )
@@ -211,110 +219,26 @@ plotTopBar(
     MF, MF$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
     limits = top_limits
 )
-dev.print(pdf, file='fe.pdf'); dev.print(png, file='fe.png', height=2*4, width=6*4, res=72, units = "in");
+dev.print(pdf, file='fe.pdf'); dev.print(png, file='fe.png', height=2*4, width=6*4, res=res_dpi, units = "in");
+
 ```
 
-## [Plot F](ff.pdf)
+## [Plot f](ff.pdf)
 ```{r heatmap2, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
+set.seed(124)
 plotHeatmap(
     MF, labels = MF$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
-    raster = TRUE, include = c(F,T,T,F), sortrows = 'decreasing',
-    clstmethod = 'ssom', ssomt1 = 2, ssomt2 = 2, clusters = 3,
+    raster = TRUE, include = c(F,T,T,T), sortrows = 'decreasing',
+    clstmethod = 'ssom', ssomt1 = 3, ssomt2 = 2, clusters = 3,
     cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(NA, NA, NA, 4), o_max = c(NA, NA, NA, 16)
+    o_min = c(NA, NA, NA, 4), o_max = c(NA, NA, NA, 16),
+    clspace = c('#011279', '#ffffff', '#ab1500')
 )
-
-dev.print(pdf, file='ff.pdf'); dev.print(png, file='ff.png', height=8.27, width=11.7, res=72, units = "in");
+dev.print(pdf, file='ff.pdf'); dev.print(png, file='ff.png', height=8.27, width=11.7, res=res_dpi, units = "in");
 ```
 
 ## [Assembled figure (click for full page)](FigCe10L.html#/all) + [Printable - static HTML](static.html)
 <iframe src="FigCe10L.html#/all"></iframe>
-
-#Alternative figures
-
-## [Plot D](fdalt.pdf) - reanked by CpG in preomoter region
-
-```{r  heatmap_cpg_pre, echo=FALSE, message=FALSE, include=FALSE}
-temp <- getPlotSetArray(tracks = MotifSetup()$addMotif('GC'),features = features[5], refgenome = 'ce10', bin = 10L, xmin = 100L, xmax = 50L)
-ord <- plotHeatmap(temp, sortrows = 'decreasing', clusters = 1)
-features[5]  %>% import.bed   %>% .[ord$FinalOrder]  %>% export.bed('test.bed')
-M2 <- getPlotSetArray(
-    tracks = ms,
-    features = 'test.bed',
-    refgenome = 'ce10',
-    bin = 10L, xmin = 1000L, xmax = 1500L
-)
-```
-
-```{r heatmap_cpg, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
-
-plotHeatmap(
-    M2, labels = M2$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
-    raster = TRUE, include = c(T,F,F,F), sortrows = 'none', clusters = 3, 
-    cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 16)
-)
-dev.print(pdf, file='fdalt.pdf')
-
-```
-
-## [Plot D](fdalt2.pdf) - reanked by CpG w/o clustering
-
-```{r heatmap_cpg_2, message=FALSE, paper = 'a4r', warning=FALSE, echo=TRUE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
-
-plotHeatmap(
-    M2, labels = M2$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
-    raster = TRUE, include = c(T,F,F,F), sortrows = 'none', clusters = 0, 
-    cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 16)
-)
-dev.print(pdf, file='fdalt2.pdf')
-
-```
-
-
-## [Plot D](fdalt3.pdf) - AATAAA TTS (endpoint) motif
-
-```{r heatmap_AATAAA, message=FALSE, paper = 'a4r', warning=FALSE, echo=FALSE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
-MotifSetup()$addBigWig(tracks[2])$addBigWig(tracks[3])$addBigWig(tracks[1]) -> ms2
-ms2$addMotif('AATTAAA', revcomp = FALSE)
-M3 <- getPlotSetArray(
-    tracks = ms2,
-    features = features[5],
-    refgenome = 'ce10',
-    bin = 10L, xmin = 1000L, xmax = 1500L, type = 'ef'
-)
-plotHeatmap(
-    M3, labels = M3$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
-    raster = TRUE, include = c(F,F,F,T), sortrows = 'decreasing', clusters = 0, 
-    cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 2)
-)
-dev.print(pdf, file='fdalt3.pdf')
-```
-
-## [Plot D](fdalt4.pdf) - TTTCAG motif on 3' of exons
-```{r heatmap_TTTCAG, echo=FALSE, message=FALSE, paper = 'a4r', warning=FALSE, dev='png', fig.align='center', fig.height=8.27, fig.width=11.7, out.height='450', out.width="auto"}
-require(AnnotationDbi)
-db <- loadDb( system.file("anno/WBcel235_EnsemblGenes77_TxDb.sqlite", package = 'JADBtools') )
-exons(db)  %>% sample(2000) %>% export.bed('exons.bed')
-MotifSetup()$addBigWig(tracks[2])$addBigWig(tracks[3])$addBigWig(tracks[1]) -> ms3
-ms3$addMotif('TTTCAG', revcomp = FALSE)
-M4 <- getPlotSetArray(
-    tracks = ms3,
-    features = 'exons.bed',
-    refgenome = 'ce10',
-    bin = 10L, xmin = 1000L, xmax = 1500L, type = 'ef'
-)
-plotHeatmap(
-    M4, labels = M4$as.array()  %>% colnames %>% strsplit('_') %>% sapply('[[', 1),
-    raster = TRUE, include = c(F,F,F,T), sortrows = 'decreasing', clusters = 0, 
-    cex.legend = 18, cex.main = 36, cex.lab = 28, cex.axis = 22, colvec = colvec,
-    o_min = c(-1, -2, -1, 0), o_max = c(3, 8, 4, 2)
-)
-dev.print(pdf, file='fdalt4.pdf')
-
-```
 
 
 
